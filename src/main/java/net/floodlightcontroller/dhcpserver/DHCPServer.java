@@ -8,11 +8,9 @@ import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFPacketIn;
-import org.projectfloodlight.openflow.protocol.OFPacketOut;
-import org.projectfloodlight.openflow.protocol.OFType;
+import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IpProtocol;
@@ -811,6 +809,10 @@ public class DHCPServer implements IOFMessageListener, IFloodlightModule  {
 	@Override
 	public net.floodlightcontroller.core.IListener.Command receive(IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
 
+		//Ethernet eth = IFloodlightProviderService.bcStore.get(cntx, IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
+		//IPv4 IPv4Payload = (IPv4) eth.getPayload();
+
+
 		OFPacketIn pi = (OFPacketIn) msg;
 
 		if (!theDHCPPool.hasAvailableAddresses()) {
@@ -838,7 +840,9 @@ public class DHCPServer implements IOFMessageListener, IFloodlightModule  {
 					log.debug("Got DHCP Packet");
 					// This is a DHCP packet that we need to process
 					DHCP DHCPPayload = (DHCP) UDPPayload.getPayload();
-					OFPort inPort = pi.getInPort();
+
+					OFPort inPort = (pi.getVersion().compareTo(OFVersion.OF_12) < 0 ? pi.getInPort() : pi.getMatch().get(MatchField.IN_PORT));
+
 
 					/* DHCP/IPv4 Header Information */
 					int xid = 0;
